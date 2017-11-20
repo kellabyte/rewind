@@ -19,6 +19,7 @@ Total 12 bytes
 ---------------------------------------
 Bytes | Description
 ---------------------------------------
+1       Flags
 4       Seconds since the Unix epoch
 3       Machine identifier
 2       Process id
