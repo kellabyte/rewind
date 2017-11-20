@@ -13,7 +13,7 @@ Rewind gets around this by recording the timestamp in each log entry so that rep
 # Log entry format
 Each log entry in Rewind has the following byte layout.
 
-Total 12 bytes  
+Total 17 byte header
 
 ```
 ---------------------------------------
