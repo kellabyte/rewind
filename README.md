@@ -6,9 +6,9 @@ Command logging provides durability of database operations. Command logging keep
 # Differences between a Command Log and a Write-Ahead-Log
 The difference between a `command log` and `write-ahead-log` is that a `command log` records the invocations, whereas a `WAL` records the consequences of the transactions.
 
-Recovering changes read from a write-ahead-log is more straight forward with operations that use random number generators or timestamps and timestamp functions than a command log because it restores the stored values from the past. A command log replays operations which means the timestamp of the replay time may be different than the time the transaction was recorded.
+This means the timestamp of the replay time may be different than the time the transaction was recorded. Recovering changes read from a command log that use random number generators or date/time based operations need to reproduce the original seed or timestamp. 
 
-Rewind gets around this by recording the timestamp in each log entry so that replaying database operations can source the original time the transaction occured.
+Rewind gets around this by recording the timestamp in each log entry so that replaying the command log can source the original time the transaction occured.
 
 # Log entry format
 Each log entry in Rewind has the following byte layout.
