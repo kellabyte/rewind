@@ -1,0 +1,12 @@
+hash: 6cd2afee894c354ee3fcf6e49a22f4e1e7a034eea4963a30552ab00949b08717
+updated: 2017-11-19T23:25:25.616479149-05:00
+imports:
+- name: github.com/alecthomas/kingpin
+  version: 1087e65c9441605df944fb12c33f0fe7072d18ca
+- name: github.com/rs/xid
+  version: 02dd45c33376f85d1064355dc790dcc4850596b1
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert
+testImports: []
