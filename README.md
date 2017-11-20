@@ -23,6 +23,6 @@ Bytes | Description
 3       Machine identifier
 2       Process id
 3       Counter, starting with a random value
-4       Size in bytes of log data
+4       Size in bytes of log data (uint32, max value of 4,294,967,295)
 N       Log entry data
 ``` 
