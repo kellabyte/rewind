@@ -20,6 +20,6 @@ func (log *CommandLog) Close() error {
 }
 
 func (log *CommandLog) Append(entry *Entry) (err error) {
-	_, err = log.file.Write(entry.data)
+	_, err = log.file.Write(entry.Data)
 	return err
 }
