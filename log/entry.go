@@ -4,7 +4,7 @@ import "github.com/rs/xid"
 
 type Entry struct {
 	// Flags represents version information about the log entry.
-	Flags uint
+	Flags uint8
 
 	// Id represents a unique id of the log entry.
 	// 4 byte value representing the seconds since the Unix epoch.
