@@ -16,7 +16,7 @@ type Frame struct {
 	Record []byte
 }
 
-// NewRecord initializes and returns a new Frame instance.
+// NewFrame initializes and returns a new Frame instance.
 func NewFrame() *Frame {
 	return &Frame{
 		Flags:  0,
