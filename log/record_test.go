@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestNewEntry(t *testing.T) {
-	entry := NewEntry()
+func TestNewRecord(t *testing.T) {
+	entry := NewRecord()
 	assert.NotNil(t, entry)
 }
