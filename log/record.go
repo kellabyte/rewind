@@ -1,11 +1,12 @@
 package log
 
-import "github.com/rs/xid"
+import (
+	"github.com/rs/xid"
+)
 
-type Entry struct {
-	// Flags represents version information about the log entry.
-	Flags uint8
-
+// Record represents a log record that contains a global id and the byte payload of arbitrary
+// record information stored from the consuming application.
+type Record struct {
 	// Id represents a unique id of the log entry.
 	// 4 byte value representing the seconds since the Unix epoch.
 	// 3 byte machine identifier.
@@ -20,9 +21,9 @@ type Entry struct {
 	Data []byte
 }
 
-func NewEntry() *Entry {
-	return &Entry{
-		Flags:  0,
+// NewRecord initializes and returns a new Record instance.
+func NewRecord() *Record {
+	return &Record{
 		Id:     xid.New(),
 		Length: 0,
 		Data:   nil,
