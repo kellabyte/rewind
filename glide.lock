@@ -1,12 +1,22 @@
-hash: 6cd2afee894c354ee3fcf6e49a22f4e1e7a034eea4963a30552ab00949b08717
-updated: 2017-11-19T23:25:25.616479149-05:00
+hash: a9e91e5d2afd1c12ba0bdbb638183ae576d8d8abed54c66ede95ad04c57e4e76
+updated: 2018-04-04T23:40:59.150158-04:00
 imports:
 - name: github.com/alecthomas/kingpin
-  version: 1087e65c9441605df944fb12c33f0fe7072d18ca
+  version: 947dcec5ba9c011838740e680966fd7087a71d0d
 - name: github.com/rs/xid
   version: 02dd45c33376f85d1064355dc790dcc4850596b1
 - name: github.com/stretchr/testify
   version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
   subpackages:
   - assert
-testImports: []
+- name: gopkg.in/restruct.v1
+  version: 80ede2e57cc280052ab88753387703aa62475571
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
