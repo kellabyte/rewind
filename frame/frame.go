@@ -1,4 +1,4 @@
-package log
+package frame
 
 // Frame represents the envelope format of a log Record. It contains version information and
 // a Checksum of the log Record to detect Record corruption.
@@ -16,8 +16,8 @@ type Frame struct {
 	Record []byte
 }
 
-// NewFrame initializes and returns a new Frame instance.
-func NewFrame() *Frame {
+// New initializes and returns a new Frame instance.
+func New() *Frame {
 	return &Frame{
 		Flags:  0,
 		Length: 0,

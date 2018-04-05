@@ -1,4 +1,4 @@
-package log
+package record
 
 import (
 	"encoding/binary"
