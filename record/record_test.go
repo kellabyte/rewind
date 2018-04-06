@@ -39,3 +39,40 @@ func TestRecordToBytesFromBytes(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkToBytes(b *testing.B) {
+	var originalPayload uint32 = 31415926
+	originalRecord := New()
+	originalRecord.Length = 4
+
+	bs := make([]byte, 4)
+	binary.LittleEndian.PutUint32(bs, originalPayload)
+	originalRecord.Data = bs
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		// Serialize record to bytes.
+		ToBytes(originalRecord)
+	}
+}
+
+func BenchmarkFromBytes(b *testing.B) {
+	var originalPayload uint32 = 31415926
+	originalRecord := New()
+	originalRecord.Length = 4
+
+	bs := make([]byte, 4)
+	binary.LittleEndian.PutUint32(bs, originalPayload)
+	originalRecord.Data = bs
+
+	// Serialize record to bytes.
+	serialized, _ := ToBytes(originalRecord)
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		// Deserialize record from bytes.
+		FromBytes(serialized)
+	}
+}
