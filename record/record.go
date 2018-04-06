@@ -2,6 +2,7 @@ package record
 
 import (
 	"encoding/binary"
+	"io"
 
 	"github.com/rs/xid"
 	"gopkg.in/restruct.v1"
@@ -39,9 +40,41 @@ func ToBytes(record *Record) (data []byte, err error) {
 	return data, err
 }
 
+// WriteTo writes the record to an io.Writer.
+func (record *Record) WriteTo(w io.Writer) (int, error) {
+	w.Write(record.ID[:])
+
+	sz := len(record.Data)
+	w.Write([]byte{
+		byte(sz >> 24),
+		byte(sz >> 16),
+		byte(sz >> 8),
+		byte(sz),
+	})
+
+	return w.Write(record.Data)
+}
+
 // FromBytes deserializes a byte buffer into a new Record instance.
 func FromBytes(data []byte) (*Record, error) {
 	var record Record
 	err := restruct.Unpack(data, binary.LittleEndian, &record)
 	return &record, err
+}
+
+// ReadFrom reads from an io.Reader into the current Record.
+func (record *Record) ReadFrom(r io.Reader) (int, error) {
+	r.Read(record.ID[:])
+
+	var szb [4]byte
+	r.Read(szb[:])
+
+	sz := (int(szb[0]) << 24) | (int(szb[1]) << 16) | (int(szb[2]) << 8) | int(szb[3])
+
+	if cap(record.Data) < sz {
+		record.Data = make([]byte, sz)
+	} else {
+		record.Data = record.Data[:sz]
+	}
+	return r.Read(record.Data)
 }
