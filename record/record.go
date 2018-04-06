@@ -55,6 +55,22 @@ func (record *Record) WriteTo(w io.Writer) (int, error) {
 	return w.Write(record.Data)
 }
 
+func (record *Record) Len() int { return 12 + 4 + len(record.Data) }
+
+func (record *Record) EncodeTo(data []byte) {
+	_ = data[16]
+	_ = data[record.Len()] // early bounds check
+
+	sz := len(record.Data)
+	copy(data, record.ID[:])
+	data[12] = byte(sz >> 24)
+	data[13] = byte(sz >> 16)
+	data[14] = byte(sz >> 8)
+	data[15] = byte(sz)
+
+	copy(data[16:], record.Data)
+}
+
 // FromBytes deserializes a byte buffer into a new Record instance.
 func FromBytes(data []byte) (*Record, error) {
 	var record Record

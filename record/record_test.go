@@ -77,6 +77,25 @@ func BenchmarkWriteTo(b *testing.B) {
 	}
 }
 
+func BenchmarkEncodeTo(b *testing.B) {
+	var originalPayload uint32 = 31415926
+	originalRecord := New()
+	originalRecord.Length = 4
+
+	bs := make([]byte, 4)
+	binary.LittleEndian.PutUint32(bs, originalPayload)
+	originalRecord.Data = bs
+
+	var buffer []byte = make([]byte, 32)
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		// Serialize record to bytes.
+		originalRecord.EncodeTo(buffer)
+	}
+}
+
 func BenchmarkFromBytes(b *testing.B) {
 	var originalPayload uint32 = 31415926
 	originalRecord := New()
