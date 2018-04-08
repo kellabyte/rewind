@@ -10,6 +10,11 @@ import (
 
 // Record represents a log record that contains a global id and the byte payload of arbitrary
 // record information stored from the consuming application.
+//
+// The byte format of a Record is as follows.
+// 12 byte ID.
+// 4 byte int represents length of the data buffer.
+// N byte data buffer.
 type Record struct {
 	// Id represents a unique id of the log entry.
 	// 4 byte value representing the seconds since the Unix epoch.
@@ -18,9 +23,6 @@ type Record struct {
 	// 3 byte counter starting with a random value.
 	ID xid.ID
 
-	// Length represents the length of the Data field in bytes.
-	Length uint32 `struct:"uint32,sizeof=Data"`
-
 	// Data represents the bytes that make up the log data.
 	Data []byte
 }
@@ -28,9 +30,8 @@ type Record struct {
 // New returns a new Record instance.
 func New() *Record {
 	return &Record{
-		ID:     xid.New(),
-		Length: 0,
-		Data:   nil,
+		ID:   xid.New(),
+		Data: nil,
 	}
 }
 
@@ -55,11 +56,16 @@ func (record *Record) WriteTo(w io.Writer) (int, error) {
 	return w.Write(record.Data)
 }
 
-func (record *Record) Len() int { return 12 + 4 + len(record.Data) }
+// LengthOfData returns the size in bytes of the record data buffer.
+func (record *Record) LengthOfData() int { return len(record.Data) }
 
+// LengthOfRecord returns the size in bytes of the entire record.
+func (record *Record) LengthOfRecord() int { return 12 + 4 + record.LengthOfData() }
+
+// EncodeTo encodes the record to a byte buffer.
 func (record *Record) EncodeTo(data []byte) {
 	_ = data[16]
-	_ = data[record.Len()] // early bounds check
+	_ = data[record.LengthOfRecord()-1] // early bounds check
 
 	sz := len(record.Data)
 	copy(data, record.ID[:])

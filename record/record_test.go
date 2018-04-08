@@ -17,25 +17,27 @@ func TestNew(t *testing.T) {
 func TestRecordToBytesFromBytes(t *testing.T) {
 	var originalPayload uint32 = 31415926
 	originalRecord := New()
-	originalRecord.Length = 4
 
 	bs := make([]byte, 4)
 	binary.LittleEndian.PutUint32(bs, originalPayload)
 	originalRecord.Data = bs
 
+	var serialized []byte = make([]byte, 20)
+
 	// Serialize record to bytes.
-	serialized, err := ToBytes(originalRecord)
-	assert.Nil(t, err)
+	originalRecord.EncodeTo(serialized)
+	buffer := bytes.NewBuffer(serialized)
 
 	// Deserialize record from bytes.
-	deserializedRecord, err := FromBytes(serialized)
+	var deserializedRecord Record
+	_, err := deserializedRecord.ReadFrom(buffer)
 
 	if assert.Nil(t, err, "Error deserializing Record.") {
 		if assert.NotNil(t, deserializedRecord, "Deserialized Record is nil.") {
 			deserializedPayload := binary.LittleEndian.Uint32(deserializedRecord.Data)
 
 			assert.EqualValues(t, len(originalRecord.Data), len(deserializedRecord.Data))
-			assert.EqualValues(t, 4, deserializedRecord.Length)
+			assert.EqualValues(t, 4, deserializedRecord.LengthOfData())
 			assert.Equal(t, originalPayload, deserializedPayload)
 		}
 	}
@@ -44,7 +46,6 @@ func TestRecordToBytesFromBytes(t *testing.T) {
 func BenchmarkToBytes(b *testing.B) {
 	var originalPayload uint32 = 31415926
 	originalRecord := New()
-	originalRecord.Length = 4
 
 	bs := make([]byte, 4)
 	binary.LittleEndian.PutUint32(bs, originalPayload)
@@ -61,7 +62,6 @@ func BenchmarkToBytes(b *testing.B) {
 func BenchmarkWriteTo(b *testing.B) {
 	var originalPayload uint32 = 31415926
 	originalRecord := New()
-	originalRecord.Length = 4
 
 	bs := make([]byte, 4)
 	binary.LittleEndian.PutUint32(bs, originalPayload)
@@ -80,13 +80,12 @@ func BenchmarkWriteTo(b *testing.B) {
 func BenchmarkEncodeTo(b *testing.B) {
 	var originalPayload uint32 = 31415926
 	originalRecord := New()
-	originalRecord.Length = 4
 
 	bs := make([]byte, 4)
 	binary.LittleEndian.PutUint32(bs, originalPayload)
 	originalRecord.Data = bs
 
-	var buffer []byte = make([]byte, 32)
+	var buffer []byte = make([]byte, 20)
 
 	b.ResetTimer()
 
@@ -99,7 +98,6 @@ func BenchmarkEncodeTo(b *testing.B) {
 func BenchmarkFromBytes(b *testing.B) {
 	var originalPayload uint32 = 31415926
 	originalRecord := New()
-	originalRecord.Length = 4
 
 	bs := make([]byte, 4)
 	binary.LittleEndian.PutUint32(bs, originalPayload)
@@ -119,7 +117,6 @@ func BenchmarkFromBytes(b *testing.B) {
 func BenchmarkReadFrom(b *testing.B) {
 	var originalPayload uint32 = 31415926
 	originalRecord := New()
-	originalRecord.Length = 4
 
 	bs := make([]byte, 4)
 	binary.LittleEndian.PutUint32(bs, originalPayload)
