@@ -26,11 +26,10 @@ func TestRecordToBytesFromBytes(t *testing.T) {
 
 	// Serialize record to bytes.
 	originalRecord.EncodeTo(serialized)
-	buffer := bytes.NewBuffer(serialized)
 
 	// Deserialize record from bytes.
 	var deserializedRecord Record
-	_, err := deserializedRecord.ReadFrom(buffer)
+	err := deserializedRecord.DecodeFrom(serialized)
 
 	if assert.Nil(t, err, "Error deserializing Record.") {
 		if assert.NotNil(t, deserializedRecord, "Deserialized Record is nil.") {
@@ -135,6 +134,26 @@ func BenchmarkReadFrom(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		deserializedRecord.ReadFrom(&buffer)
+		b.SetBytes(1)
+	}
+}
+
+func BenchmarkDecodeFrom(b *testing.B) {
+	var originalPayload uint32 = 31415926
+	originalRecord := New()
+
+	bs := make([]byte, 4)
+	binary.LittleEndian.PutUint32(bs, originalPayload)
+	originalRecord.Data = bs
+
+	var buffer []byte = make([]byte, 20)
+	originalRecord.EncodeTo(buffer)
+	var deserializedRecord Record
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		// Deserialize record to bytes.
+		deserializedRecord.DecodeFrom(buffer)
 		b.SetBytes(1)
 	}
 }

@@ -100,3 +100,19 @@ func (record *Record) ReadFrom(r io.Reader) (int, error) {
 	}
 	return r.Read(record.Data)
 }
+
+// DecodeFrom decodes a Record from a byte buffer.
+func (record *Record) DecodeFrom(buffer []byte) error {
+	copy(record.ID[:], buffer[:12])
+
+	sz := (int(buffer[12]) << 24) | (int(buffer[13]) << 16) | (int(buffer[14]) << 8) | int(buffer[15])
+
+	if cap(record.Data) < sz {
+		record.Data = make([]byte, sz)
+		copy(record.Data, buffer[16:16+sz])
+	} else {
+		record.Data = record.Data[:sz]
+	}
+
+	return nil
+}
