@@ -86,11 +86,16 @@ func FromBytes(data []byte) (*Record, error) {
 
 // ReadFrom reads from an io.Reader into the current Record.
 func (record *Record) ReadFrom(r io.Reader) (int, error) {
+	totalRead := 0
 	r.Read(record.ID[:])
 
 	var szb [4]byte
-	r.Read(szb[:])
+	read, err := r.Read(szb[:])
+	if err != nil {
+		return 0, err
+	}
 
+	totalRead += read
 	sz := (int(szb[0]) << 24) | (int(szb[1]) << 16) | (int(szb[2]) << 8) | int(szb[3])
 
 	if cap(record.Data) < sz {
@@ -98,7 +103,14 @@ func (record *Record) ReadFrom(r io.Reader) (int, error) {
 	} else {
 		record.Data = record.Data[:sz]
 	}
-	return r.Read(record.Data)
+
+	read, err = r.Read(record.Data)
+	if err != nil {
+		return 0, nil
+	}
+
+	totalRead += read
+	return totalRead, nil
 }
 
 // DecodeFrom decodes a Record from a byte buffer.
