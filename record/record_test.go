@@ -56,6 +56,7 @@ func BenchmarkToBytes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Serialize record to bytes.
 		ToBytes(originalRecord)
+		b.SetBytes(1)
 	}
 }
 
@@ -74,6 +75,7 @@ func BenchmarkWriteTo(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Serialize record to bytes.
 		originalRecord.WriteTo(&buffer)
+		b.SetBytes(1)
 	}
 }
 
@@ -92,6 +94,7 @@ func BenchmarkEncodeTo(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Serialize record to bytes.
 		originalRecord.EncodeTo(buffer)
+		b.SetBytes(1)
 	}
 }
 
@@ -111,6 +114,7 @@ func BenchmarkFromBytes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Deserialize record from bytes.
 		FromBytes(serialized)
+		b.SetBytes(1)
 	}
 }
 
@@ -131,5 +135,6 @@ func BenchmarkReadFrom(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		deserializedRecord.ReadFrom(&buffer)
+		b.SetBytes(1)
 	}
 }
