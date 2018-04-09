@@ -85,7 +85,7 @@ func FromBytes(data []byte) (*Record, error) {
 }
 
 // ReadFrom reads from an io.Reader into the current Record.
-func (record *Record) ReadFrom(r io.Reader) (int, error) {
+func (record *Record) ReadFrom(r io.Reader) (int64, error) {
 	totalRead := 0
 	r.Read(record.ID[:])
 
