@@ -32,3 +32,21 @@ func TestOpenCloseReopen(t *testing.T) {
 	err = log.Open("command.log", 0666)
 	assert.NoError(t, err)
 }
+
+func BenchmarkAppend4096(b *testing.B) {
+	benchmarkAppend(4096, b)
+}
+
+func benchmarkAppend(batchSize int, b *testing.B) {
+	var buffer [4096]byte
+	log := NewInMemory()
+	log.Open("command.log", 0666)
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		bytes, _ := log.Append(buffer[:])
+		log.Sync()
+		b.SetBytes(int64(bytes))
+	}
+}

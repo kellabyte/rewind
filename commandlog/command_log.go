@@ -62,3 +62,14 @@ func (log *CommandLog) Open(path string, perm os.FileMode) error {
 func (log *CommandLog) Close() error {
 	return log.file.Close()
 }
+
+// Sync flushes and fsyncs the command log file to disk.
+func (log *CommandLog) Sync() error {
+	return log.file.Sync()
+}
+
+// Append appends a new record to the command log.
+func (log *CommandLog) Append(data []byte) (bytes int, err error) {
+	bytes, err = log.file.Write(data)
+	return bytes, err
+}
