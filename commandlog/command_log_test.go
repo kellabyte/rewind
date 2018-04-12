@@ -37,8 +37,8 @@ func BenchmarkAppend4096(b *testing.B) {
 	benchmarkAppend(4096, b)
 }
 
-func benchmarkAppend(batchSize int, b *testing.B) {
-	var buffer [4096]byte
+func benchmarkAppend(bufferSize int, b *testing.B) {
+	buffer := make([]byte, bufferSize)
 	log := NewInMemory()
 	log.Open("command.log", 0666)
 
