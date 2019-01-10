@@ -12,7 +12,7 @@ The goal for Rewind are to implement an optional logical command log for LMDB. L
 This also becomes the foundation for replication. It's a goal to layer on capabilities that can be enabled as desired as optional features.
 
 Performance goals
-* Can Rewind catch up to RocksDB in benchmarks RocksDB excels against LMDB without all the LSM complexity and LSM drawbacks.
+* My long standing theory is Rewind can help LMDB catch up to RocksDB in benchmarks RocksDB excels against LMDB without all the LSM complexity and LSM drawbacks without adding a bunch of internal complexity to LMDB.
 
 # Log entry format
 TODO.
