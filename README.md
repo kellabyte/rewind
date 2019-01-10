@@ -10,5 +10,24 @@ This means the timestamp of the replay time may be different than the time the t
 
 Rewind gets around this by recording the timestamp in each log entry so that replaying the command log can source the original time the transaction occured.
 
+# Goals
+The goal for Rewind are to implement an optional logical command log for LMDB. LMDB is a very fast storage engine that performs very fast for many types of workloads but there are a few workloads that could potentially benefit from having a commit log in place.
+
+This also becomes the foundation for replication. It's a goal to layer on capabilities that can be enabled as desired as optional features.
+
 # Log entry format
 TODO.
+
+# Compiling
+```
+make
+```
+
+# Running tests
+```
+./build/tests
+
+===============================================================================
+test cases: 1 | 1 passed
+assertions: - none -
+```
