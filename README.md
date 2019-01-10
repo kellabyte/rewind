@@ -11,19 +11,4 @@ This means the timestamp of the replay time may be different than the time the t
 Rewind gets around this by recording the timestamp in each log entry so that replaying the command log can source the original time the transaction occured.
 
 # Log entry format
-Each log entry in Rewind has the following byte layout.
-
-Total 17 byte header
-
-```
----------------------------------------
-Bytes | Description
----------------------------------------
-1       Flags
-4       Seconds since the Unix epoch
-3       Machine identifier
-2       Process id
-3       Counter, starting with a random value
-4       Size in bytes of log data (uint32, max value of 4,294,967,295)
-N       Log entry data
-``` 
+TODO.
