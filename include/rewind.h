@@ -14,6 +14,7 @@ extern "C" {
 
 #include <stdbool.h>
 #include <uv.h>
+#include "lmdb.h"
 
 #ifdef _WIN32
     /* Windows - set up dll import/export decorators. */
@@ -36,6 +37,10 @@ extern "C" {
 #define REWIND_EXTERN /* nothing */
 #define REWIND_CALLING_CONVENTION /* nothing */
 #endif
+
+#define mdb_env_create(env) re_env_create(env);
+
+int re_env_create(MDB_env **env);
 
 #ifdef __cplusplus
 }

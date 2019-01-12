@@ -33,6 +33,8 @@ file(GLOB_RECURSE REWIND_SOURCES
 list(SORT REWIND_SOURCES)
 create_source_group("Source Files" "${CMAKE_CURRENT_SOURCE_DIR}/src" ${REWIND_SOURCES})
 include_directories(${CMAKE_SOURCE_DIR}/lib/libuv/include)
+include_directories(${CMAKE_SOURCE_DIR}/lib/lmdb/libraries/liblmdb)
+
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 find_package(Threads REQUIRED)
@@ -40,7 +42,8 @@ find_package(Threads REQUIRED)
 add_library(rewind STATIC ${REWIND_SOURCES})
 
 target_link_libraries (rewind ${CMAKE_THREAD_LIBS_INIT}
-    ${CMAKE_SOURCE_DIR}/lib/libuv/.libs/libuv.a)
+        ${CMAKE_SOURCE_DIR}/lib/libuv/.libs/libuv.a
+        ${CMAKE_SOURCE_DIR}/lib/lmdb/libraries/liblmdb/liblmdb.a)
 
 GET_PROPERTY(rewind_location TARGET rewind PROPERTY LOCATION)
 
@@ -69,6 +72,7 @@ add_dependencies(tests rewind)
 target_link_libraries (tests
         ${rewind_location}
         ${CMAKE_SOURCE_DIR}/lib/libuv/.libs/libuv.a
+        ${CMAKE_SOURCE_DIR}/lib/lmdb/libraries/liblmdb/liblmdb.a
         ${CMAKE_THREAD_LIBS_INIT})
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

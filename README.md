@@ -19,7 +19,7 @@ make
 
 # Running tests
 ```
-./build/tests
+make test
 
 ===============================================================================
 test cases: 1 | 1 passed

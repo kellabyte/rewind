@@ -84,4 +84,7 @@ $(lmdb_path)/libraries/liblmdb/liblmdb.a:
 
 tools: $(wrk_path)/wrk $(wrk2_path)/wrk
 
+test: $(PLATFORM_TARGET)
+	./build/tests
+
 deps: $(libuv_path)/.libs/libuv.a $(tcmalloc_path) $(lmdb_path)/libraries/liblmdb/liblmdb.a
