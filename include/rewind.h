@@ -38,9 +38,24 @@ extern "C" {
 #define REWIND_CALLING_CONVENTION /* nothing */
 #endif
 
-#define mdb_env_create(env) re_env_create(env);
+/*
+ * LMDB API calls that Rewind intercepts.
+ */
+#define mdb_env_create(env) rew_env_create(env)
+int rew_env_create(MDB_env **env);
 
-int re_env_create(MDB_env **env);
+#define mdb_put(txn, dbi, key, data, flags) rew_put(txn, dbi, key, data, flags)
+int rew_put(MDB_txn *txn, MDB_dbi dbi, MDB_val *key, MDB_val *data, unsigned int flags);
+
+#define mdb_get(txn, dbi, key, data) rew_get(txn, dbi, key, data)
+int rew_get(MDB_txn *txn, MDB_dbi dbi, MDB_val *key, MDB_val *data);
+
+/** @brief Opaque structure for a database environment.
+ *
+ * A DB environment supports multiple databases, all residing in the same
+ * shared-memory map.
+ */
+typedef struct REW_env REW_env;
 
 #ifdef __cplusplus
 }

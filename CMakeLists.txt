@@ -10,7 +10,7 @@ project(rewind C CXX)
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 set (CMAKE_CXX_STANDARD 14)
 
-add_definitions(-std=gnu99)
+#add_definitions(-std=gnu99)
 #add_definitions(-msse4.1)
 add_definitions(-mavx)
 add_definitions(-pedantic)
@@ -77,4 +77,36 @@ target_link_libraries (tests
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_link_libraries (tests rt)
+endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
+# ----------------------------------------
+# Benchmarks
+# ----------------------------------------
+file(GLOB_RECURSE BENCHMARKS_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/benchmarks/*.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/benchmarks/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/benchmarks/*.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/benchmarks/*.cpp)
+
+list(SORT BENCHMARKS_SOURCES)
+create_source_group("Source Files" "${CMAKE_CURRENT_SOURCE_DIR}/src" ${BENCHMARKS_SOURCES})
+include_directories(${CMAKE_SOURCE_DIR}/lib/libuv/include)
+include_directories(${CMAKE_SOURCE_DIR}/include)
+
+find_package(Threads REQUIRED)
+
+add_executable (benchmarks
+        ${BENCHMARKS_SOURCES})
+
+add_dependencies(benchmarks rewind)
+
+# Libraries to link in reverse order because that's what ld requires.
+target_link_libraries (benchmarks
+        ${rewind_location}
+        ${CMAKE_SOURCE_DIR}/lib/libuv/.libs/libuv.a
+        ${CMAKE_SOURCE_DIR}/lib/lmdb/libraries/liblmdb/liblmdb.a
+        ${CMAKE_THREAD_LIBS_INIT})
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    target_link_libraries (benchmarks rt)
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

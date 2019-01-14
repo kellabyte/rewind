@@ -12,6 +12,12 @@ The goal for Rewind is to implement an optional logical command log for LMDB. LM
 # Log entry format
 TODO.
 
+# Prerequisites
+If you're on macOS don't forget to install the CLI developer tools.
+```
+xcode-select --install
+```
+
 # Compiling
 ```
 make
