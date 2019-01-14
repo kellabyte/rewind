@@ -1,9 +1,8 @@
-#include "catch.h"
-extern "C" {
-    #include "lmdb.h"
-    #include "rewind.h"
-    #include "success.hpp"
-}
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
+#include "lmdb.h"
+#include "rewind.h"
+#include "success.hpp"
 
 TEST_CASE("initialize rewind", "[rewind]") {
     int rc;

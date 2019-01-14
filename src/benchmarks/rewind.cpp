@@ -1,10 +1,9 @@
+#define CATCH_CONFIG_MAIN
 #include <time.h>
 #include <stdlib.h>
-#include "catch.h"
-extern "C" {
-    #include "lmdb.h"
-    #include "rewind.h"
-}
+#include "catch.hpp"
+#include "lmdb.h"
+#include "rewind.h"
 
 const int SUCCESS = 0;
 
