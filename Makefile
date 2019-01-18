@@ -1,5 +1,4 @@
 projectpath = ${CURDIR}
-libuv_path = ${projectpath}/lib/libuv
 lockless_path = ${projectpath}/lib/lockless_allocator
 tcmalloc_path = ${projectpath}/lib/tcmalloc
 lmdb_path = ${projectpath}/lib/lmdb
@@ -61,12 +60,6 @@ linux: deps $(lockless_path)
 	cd build;cmake ..
 	cd build;make VERBOSE=1
 
-$(libuv_path)/.libs/libuv.a:
-	if [ ! -d "$(libuv_path)" ]; then git clone https://github.com/libuv/libuv.git $(libuv_path); fi
-	cd $(libuv_path);sh autogen.sh
-	cd $(libuv_path);./configure
-	cd $(libuv_path);make
-
 $(tcmalloc_path):
 	if [ ! -d "$(tcmalloc_path)" ]; then git clone https://github.com/gperftools/gperftools.git $(tcmalloc_path); fi
 	cd $(tcmalloc_path);./autogen.sh
@@ -87,4 +80,4 @@ tools: $(wrk_path)/wrk $(wrk2_path)/wrk
 test: $(PLATFORM_TARGET)
 	./build/tests
 
-deps: $(libuv_path)/.libs/libuv.a $(tcmalloc_path) $(lmdb_path)/libraries/liblmdb/liblmdb.a
+deps: $(tcmalloc_path) $(lmdb_path)/libraries/liblmdb/liblmdb.a
