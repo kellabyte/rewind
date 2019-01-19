@@ -7,8 +7,9 @@
 #include "lmdb.h"
 
 typedef struct REW_env {
-    MDB_env* mdb_env;
-    MDB_dbi* mdb_dbi;
+    MDB_env* mdb_log_env;
+    MDB_dbi* mdb_log_dbi;
+    MDB_cursor* mdb_log_cursor;
     char* path;
     unsigned int last_durable_sequence;
     unsigned int current_sequence;
@@ -32,8 +33,8 @@ int rew_env_create(MDB_env** env) {
     }
 
     // Create the log database file.
-    MDB_env* mdb_env;
-    rc = mdb_env_create(&mdb_env);
+    MDB_env* mdb_log_env;
+    rc = mdb_env_create(&mdb_log_env);
     if (rc != 0) {
         return rc;
     }
@@ -41,7 +42,7 @@ int rew_env_create(MDB_env** env) {
     REW_env* rew_env = malloc(sizeof(REW_env));
     rew_env->last_durable_sequence = 0;
     rew_env->current_sequence = 0;
-    rew_env->mdb_env = mdb_env;
+    rew_env->mdb_log_env = mdb_log_env;
     rc = mdb_env_set_userctx(*env, rew_env);
     if (rc != 0) {
         return rc;
@@ -76,12 +77,36 @@ int re_env_open(MDB_env *env, const char *path, unsigned int flags, mdb_mode_t m
             }
         }
 
-        MDB_env* log_env;
-        rew_env->mdb_env = log_env;
-        rew_env->mdb_dbi = malloc(sizeof(MDB_dbi));
-        rc = mdb_env_set_mapsize(rew_env, 1048576000);
-        rc = mdb_env_set_maxdbs(rew_env, 1024);
-        rc = mdb_env_open(rew_env->mdb_env, rew_env->path, 0, 0664);
+        rc = mdb_env_set_mapsize(rew_env->mdb_log_env, 1048576000);
+        if (rc != 0) {
+            return rc;
+        }
+
+        rc = mdb_env_set_maxdbs(rew_env->mdb_log_env, 1024);
+        if (rc != 0) {
+            return rc;
+        }
+
+        rc = mdb_env_open(rew_env->mdb_log_env, rew_env->path, 0, 0664);
+        if (rc != 0) {
+            return rc;
+        }
+
+        rew_env->mdb_log_dbi = malloc(sizeof(MDB_dbi));
+        MDB_txn *txn;
+        rc = mdb_txn_begin(rew_env->mdb_log_env, NULL, 0, &txn);
+        if (rc != 0) {
+            return rc;
+        }
+        rc = mdb_dbi_open(txn, NULL, 0, rew_env->mdb_log_dbi);
+        if (rc != 0) {
+            return rc;
+        }
+        rc = mdb_txn_commit(txn);
+        if (rc != 0) {
+            return rc;
+        }
+        return 0;
     }
 
     // Open the main LMDB database.
@@ -90,7 +115,28 @@ int re_env_open(MDB_env *env, const char *path, unsigned int flags, mdb_mode_t m
 }
 
 int re_txn_begin(MDB_env *env, MDB_txn *parent, unsigned int flags, MDB_txn **txn) {
-    return mdb_txn_begin(env, parent, flags, txn);
+    REW_env* rew_env = mdb_env_get_userctx(env);
+    if (rew_env != NULL) {
+        int rc = 0;
+
+        rc = mdb_txn_begin(rew_env->mdb_log_env, parent, flags, txn);
+        if (rc != 0) {
+            return rc;
+        }
+
+        rc = mdb_dbi_open(*txn, NULL, 0, &rew_env->mdb_log_dbi);
+        if (rc != 0) {
+            return rc;
+        }
+
+        rc = mdb_cursor_open(*txn, rew_env->mdb_log_dbi, &rew_env->mdb_log_cursor);
+        if (rc != 0) {
+            return rc;
+        }
+        return 0;
+    } else {
+        return mdb_txn_begin(env, parent, flags, txn);
+    }
 }
 
 int re_get(MDB_txn *txn, MDB_dbi dbi, MDB_val *key, MDB_val *data) {
@@ -105,14 +151,32 @@ int re_put(MDB_txn *txn, MDB_dbi dbi, MDB_val *key, MDB_val *data, unsigned int 
 
     REW_env* rew_env = mdb_env_get_userctx(mdb_env);
     if (rew_env != NULL) {
+        MDB_val sequence;
 
+        sequence.mv_size = sizeof(unsigned int);
+        sequence.mv_data = &rew_env->current_sequence;
+        int rc = mdb_cursor_put(rew_env->mdb_log_cursor, &sequence, data, MDB_APPEND);
+        if (rc != 0) {
+            return rc;
+        }
+        rew_env->current_sequence++;
     } else {
         return mdb_put(txn, dbi, key, data, flags);
     }
 }
 
 int re_txn_commit(MDB_txn *txn) {
-    mdb_txn_commit(txn);
+    MDB_env* mdb_env = mdb_txn_env(txn);
+    if (mdb_env == NULL) {
+        // TODO: Throw error.
+        return -1;
+    }
+
+    REW_env* rew_env = mdb_env_get_userctx(mdb_env);
+    if (rew_env != NULL) {
+        mdb_cursor_close(rew_env->mdb_log_cursor);
+    }
+    return mdb_txn_commit(txn);
 }
 
 int re_txn_abort(MDB_txn *txn) {
@@ -122,15 +186,15 @@ int re_txn_abort(MDB_txn *txn) {
 void re_dbi_close(MDB_env *env, MDB_dbi dbi) {
     REW_env* rew_env = mdb_env_get_userctx(env);
     if (rew_env != NULL) {
-        mdb_dbi_close(rew_env->mdb_env, rew_env->mdb_dbi);
+        mdb_dbi_close(rew_env->mdb_log_env, rew_env->mdb_log_dbi);
     }
-    return mdb_dbi_close(env, dbi);
+    mdb_dbi_close(env, dbi);
 }
 
 void re_env_close(MDB_env *env) {
     REW_env* rew_env = mdb_env_get_userctx(env);
     if (rew_env != NULL) {
-        mdb_env_close(rew_env->mdb_env);
+        mdb_env_close(rew_env->mdb_log_env);
     }
-    return mdb_env_close(env);
+    mdb_env_close(env);
 }

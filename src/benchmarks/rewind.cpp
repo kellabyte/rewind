@@ -1,13 +1,23 @@
 #define CATCH_CONFIG_MAIN
 #include <time.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "catch.hpp"
+#include "success.hpp"
 #include "lmdb.h"
 #include "rewind.h"
 
-const int SUCCESS = 0;
+TEST_CASE("LMDB random writes without Rewind", "[rewind]") {
+    const char* path = "/tmp/benchmark1";
 
-TEST_CASE("random writes", "[rewind]") {
+    struct stat st = {0};
+
+    if (stat(path, &st) == -1) {
+        mkdir(path, 0700);
+    }
+
     srand(256);
 
     int rc;
@@ -17,48 +27,90 @@ TEST_CASE("random writes", "[rewind]") {
     MDB_val key;
     MDB_val value;
 
-    rc = mdb_env_create(&env);
-    CHECK(rc == SUCCESS);
+    REQUIRE( SuccessFrom( mdb_env_create(&env) ) );
+    REQUIRE( SuccessFrom( mdb_env_set_mapsize(env, size_t(1048576000) ) ) );
+    REQUIRE( SuccessFrom( mdb_env_set_maxdbs(env, 1024) ) );
+    REQUIRE( SuccessFrom( mdb_env_open(env, path, 0, 0664) ) );
+    REQUIRE( SuccessFrom( mdb_txn_begin(env, nullptr, 0, &txn) ) );
+    REQUIRE( SuccessFrom( mdb_open(txn, nullptr, 0, &dbi) ) );
+    REQUIRE( SuccessFrom( mdb_txn_commit(txn) ) );
 
-    rc = mdb_env_set_mapsize(env, size_t(1048576000));
-    CHECK(rc == SUCCESS);
+    int batches = 1000;
+    int records_per_patch = 1000;
 
-    rc = mdb_env_set_maxdbs(env, 1024);
-    CHECK(rc == SUCCESS);
+    for(int i = 0;i<batches;i++) {
+        MDB_txn *tx;
+        mdb_txn_begin(env, nullptr, 0, &tx);
 
-    rc = mdb_env_open(env, "./", 0, 0664);
-    CHECK(rc == SUCCESS);
+        for(int y = 0;y<records_per_patch;y++) {
+            int val = rand()%1024;
+            MDB_val key;
+            MDB_val value;
+            int r = rand();
 
-    rc = mdb_txn_begin(env, nullptr, 0, &txn);
-    CHECK(rc == SUCCESS);
+            key.mv_size = sizeof(int);
+            key.mv_data = &r;
 
-    rc = mdb_open(txn, nullptr, 0, &dbi);
-    CHECK(rc == SUCCESS);
+            value.mv_size = sizeof(int);
+            value.mv_data = &val;
 
-    int count = 500000;
-    int *values;
-    values = (int *)malloc(count*sizeof(int));
+            mdb_put(tx, dbi, &key, &value, 0);
+        }
+        mdb_txn_commit(tx);
+    }
+    mdb_dbi_close(env, dbi);
+    mdb_env_close(env);
+}
 
-    for(int i = 0;i<count;i++) {
-        values[i] = rand()%1024;
+TEST_CASE("LMDB random writes with Rewind", "[rewind]") {
+    const char* path = "/tmp/benchmark2";
+
+    struct stat st = {0};
+
+    if (stat(path, &st) == -1) {
+        mkdir(path, 0700);
     }
 
-    for (int i = 0; i<count; i++) {
-        int r = rand();
+    srand(256);
 
-        key.mv_size = sizeof(int);
-        key.mv_data = &r;
+    int rc;
+    MDB_env* env;
+    MDB_dbi dbi;
+    MDB_txn *txn;
+    MDB_val key;
+    MDB_val value;
 
-        value.mv_size = sizeof(values[i]);
-        value.mv_data = &values[i];
+    REQUIRE( SuccessFrom( rew_env_create(&env) ) );
+    REQUIRE( SuccessFrom( mdb_env_set_mapsize(env, size_t(1048576000) ) ) );
+    REQUIRE( SuccessFrom( mdb_env_set_maxdbs(env, 1024) ) );
+    REQUIRE( SuccessFrom( mdb_env_open(env, path, 0, 0664) ) );
+    REQUIRE( SuccessFrom( mdb_txn_begin(env, nullptr, 0, &txn) ) );
+    REQUIRE( SuccessFrom( mdb_open(txn, nullptr, 0, &dbi) ) );
+    REQUIRE( SuccessFrom( mdb_txn_commit(txn) ) );
 
-        rc = mdb_put(txn, dbi, &key, &value, 0);
-        CHECK(rc == SUCCESS);
+    int batches = 1000;
+    int records_per_patch = 1000;
+
+    for(int i = 0;i<batches;i++) {
+        MDB_txn *tx;
+        mdb_txn_begin(env, nullptr, 0, &tx);
+
+        for(int y = 0;y<records_per_patch;y++) {
+            int val = rand()%1024;
+            MDB_val key;
+            MDB_val value;
+            int r = rand();
+
+            key.mv_size = sizeof(int);
+            key.mv_data = &r;
+
+            value.mv_size = sizeof(int);
+            value.mv_data = &val;
+
+            mdb_put(tx, dbi, &key, &value, 0);
+        }
+        mdb_txn_commit(tx);
     }
-
-    rc = mdb_txn_commit(txn);
-    CHECK(rc == SUCCESS);
-
     mdb_dbi_close(env, dbi);
     mdb_env_close(env);
 }
