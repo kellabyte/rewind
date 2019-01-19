@@ -80,4 +80,7 @@ tools: $(wrk_path)/wrk $(wrk2_path)/wrk
 test: $(PLATFORM_TARGET)
 	./build/tests
 
+benchmark: $(PLATFORM_TARGET)
+	./build/benchmarks --durations yes
+
 deps: $(tcmalloc_path) $(lmdb_path)/libraries/liblmdb/liblmdb.a

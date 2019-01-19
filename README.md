@@ -31,3 +31,8 @@ make test
 test cases: 1 | 1 passed
 assertions: - none -
 ```
+
+# Running benchmarks
+```
+make benchmarks
+```
