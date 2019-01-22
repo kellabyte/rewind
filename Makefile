@@ -88,4 +88,4 @@ benchmark: $(PLATFORM_TARGET)
 	@rm -rf /tmp/benchmark2
 	./build/benchmarks --durations yes
 
-deps: $(tcmalloc_path) $(lmdb_path)/libraries/liblmdb/liblmdb.a
+deps: $(lmdb_path)/libraries/liblmdb/liblmdb.a
