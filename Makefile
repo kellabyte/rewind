@@ -44,6 +44,9 @@ all: deps $(PLATFORM_TARGET)
 
 target: all 
 
+clean:
+	@rm -rf build
+
 osx: deps
 	if [ ! -d "build" ]; then mkdir -p build; fi
 	if [ ! -d "build/Makefile" ]; then cd build;cmake -DCMAKE_OSX_ARCHITECTURES=x86_64 ..; fi
@@ -81,6 +84,8 @@ test: $(PLATFORM_TARGET)
 	./build/tests
 
 benchmark: $(PLATFORM_TARGET)
+	@rm -rf /tmp/benchmark1
+	@rm -rf /tmp/benchmark2
 	./build/benchmarks --durations yes
 
 deps: $(tcmalloc_path) $(lmdb_path)/libraries/liblmdb/liblmdb.a

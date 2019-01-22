@@ -29,14 +29,12 @@ TEST_CASE("LMDB random writes without Rewind", "[rewind]") {
 
     REQUIRE( SuccessFrom( mdb_env_create(&env) ) );
     REQUIRE( SuccessFrom( mdb_env_set_mapsize(env, size_t(1048576000) ) ) );
-    REQUIRE( SuccessFrom( mdb_env_set_maxdbs(env, 1024) ) );
     REQUIRE( SuccessFrom( mdb_env_open(env, path, 0, 0664) ) );
-    REQUIRE( SuccessFrom( mdb_txn_begin(env, nullptr, 0, &txn) ) );
-    REQUIRE( SuccessFrom( mdb_open(txn, nullptr, 0, &dbi) ) );
-    REQUIRE( SuccessFrom( mdb_txn_commit(txn) ) );
 
-    int batches = 1000;
-    int records_per_patch = 1000;
+    int batches = 10;
+    int records_per_patch = 10;
+    int size_of_value = 1000;
+    char* value_buffer = (char*)malloc(size_of_value);
 
     for(int i = 0;i<batches;i++) {
         MDB_txn *tx;
@@ -51,14 +49,13 @@ TEST_CASE("LMDB random writes without Rewind", "[rewind]") {
             key.mv_size = sizeof(int);
             key.mv_data = &r;
 
-            value.mv_size = sizeof(int);
-            value.mv_data = &val;
+            value.mv_size = size_of_value;
+            value.mv_data = value_buffer;
 
             mdb_put(tx, dbi, &key, &value, 0);
         }
         mdb_txn_commit(tx);
     }
-    mdb_dbi_close(env, dbi);
     mdb_env_close(env);
 }
 
@@ -82,14 +79,12 @@ TEST_CASE("LMDB random writes with Rewind", "[rewind]") {
 
     REQUIRE( SuccessFrom( rew_env_create(&env) ) );
     REQUIRE( SuccessFrom( mdb_env_set_mapsize(env, size_t(1048576000) ) ) );
-    REQUIRE( SuccessFrom( mdb_env_set_maxdbs(env, 1024) ) );
     REQUIRE( SuccessFrom( mdb_env_open(env, path, 0, 0664) ) );
-    REQUIRE( SuccessFrom( mdb_txn_begin(env, nullptr, 0, &txn) ) );
-    REQUIRE( SuccessFrom( mdb_open(txn, nullptr, 0, &dbi) ) );
-    REQUIRE( SuccessFrom( mdb_txn_commit(txn) ) );
 
-    int batches = 1000;
-    int records_per_patch = 1000;
+    int batches = 10;
+    int records_per_patch = 10;
+    int size_of_value = 1000;
+    char* value_buffer = (char*)malloc(size_of_value);
 
     for(int i = 0;i<batches;i++) {
         MDB_txn *tx;
@@ -104,13 +99,12 @@ TEST_CASE("LMDB random writes with Rewind", "[rewind]") {
             key.mv_size = sizeof(int);
             key.mv_data = &r;
 
-            value.mv_size = sizeof(int);
-            value.mv_data = &val;
+            value.mv_size = size_of_value;
+            value.mv_data = value_buffer;
 
             mdb_put(tx, dbi, &key, &value, 0);
         }
         mdb_txn_commit(tx);
     }
-    mdb_dbi_close(env, dbi);
     mdb_env_close(env);
 }
