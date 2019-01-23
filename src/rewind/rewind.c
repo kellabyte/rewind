@@ -69,7 +69,7 @@ int re_env_open(MDB_env *env, const char *path, unsigned int flags, mdb_mode_t m
     REW_env* rew_env = mdb_env_get_userctx(env);
     if (rew_env != NULL) {
         size_t path_length = strlen(path);
-        rew_env->path = (char*)malloc(path_length + 5);
+        rew_env->path = (char*)malloc(path_length + 6);
         strcpy(rew_env->path, path);
         strcat(rew_env->path, "/log/");
 
