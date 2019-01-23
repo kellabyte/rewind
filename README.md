@@ -34,5 +34,5 @@ assertions: - none -
 
 # Running benchmarks
 ```
-make benchmarks
+make benchmark
 ```
