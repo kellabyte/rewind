@@ -82,7 +82,7 @@ int re_env_open(MDB_env *env, const char *path, unsigned int flags, mdb_mode_t m
             }
         }
 
-        rc = mdb_env_set_mapsize(rew_env->mdb_log_env, 1048576000);
+        rc = mdb_env_set_mapsize(rew_env->mdb_log_env, 2048576000);
         if (rc != 0) {
             return rc;
         }
@@ -102,7 +102,7 @@ int re_env_open(MDB_env *env, const char *path, unsigned int flags, mdb_mode_t m
         if (rc != 0) {
             return rc;
         }
-        rc = mdb_dbi_open(txn, NULL, 0, &rew_env->mdb_log_dbi);
+        rc = mdb_dbi_open(txn, NULL, MDB_INTEGERKEY, &rew_env->mdb_log_dbi);
         if (rc != 0) {
             return rc;
         }
@@ -110,13 +110,13 @@ int re_env_open(MDB_env *env, const char *path, unsigned int flags, mdb_mode_t m
         if (rc != 0) {
             return rc;
         }
-        printf("REW_ENV_OPEN\n");
+        //printf("REW_ENV_OPEN\n");
         return 0;
     }
 
     // Open the main LMDB database.
     rc = mdb_env_open(env, path, flags, mode);
-    printf("MDB_ENV_OPEN\n");
+    //printf("MDB_ENV_OPEN\n");
     return rc;
 }
 
@@ -134,10 +134,10 @@ int re_txn_begin(MDB_env *env, MDB_txn *parent, unsigned int flags, MDB_txn **tx
         if (rc != 0) {
             return rc;
         }
-        printf("REW_BEGIN\n");
-        return 0;
+        //printf("REW_BEGIN\n");
+        return rc;
     } else {
-        printf("MDB_BEGIN\n");
+        //printf("MDB_BEGIN\n");
         return mdb_txn_begin(env, parent, flags, txn);
     }
 }
@@ -164,9 +164,10 @@ int re_put(MDB_txn *txn, MDB_dbi dbi, MDB_val *key, MDB_val *data, unsigned int 
             return rc;
         }
         rew_env->current_sequence++;
-        printf("REW_PUT\n");
+        //printf("REW_PUT\n");
+        return rc;
     } else {
-        printf("MDB_PUT\n");
+        //printf("MDB_PUT\n");
         return mdb_put(txn, dbi, key, data, flags);
     }
 }
@@ -181,9 +182,9 @@ int re_txn_commit(MDB_txn *txn) {
     REW_env* rew_env = mdb_env_get_userctx(mdb_env);
     if (rew_env != NULL) {
         mdb_cursor_close(rew_env->mdb_log_cursor);
-        printf("REW_COMMIT\n");
+        //printf("REW_COMMIT\n");
     }
-    printf("MDB_COMMIT\n");
+    //printf("MDB_COMMIT\n");
     return mdb_txn_commit(txn);
 }
 
