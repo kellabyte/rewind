@@ -9,7 +9,7 @@
 
 typedef struct REW_env {
     MDB_env* mdb_log_env;
-    MDB_dbi* mdb_log_dbi;
+    MDB_dbi mdb_log_dbi;
     MDB_cursor* mdb_log_cursor;
     char* path;
     unsigned int last_durable_sequence;
@@ -48,6 +48,10 @@ int rew_env_create(MDB_env** env) {
     if (rc != 0) {
         return rc;
     }
+    rc = mdb_env_set_userctx(mdb_log_env, rew_env);
+    if (rc != 0) {
+        return rc;
+    }
 
     return 0;
 }
@@ -66,7 +70,7 @@ int re_env_open(MDB_env *env, const char *path, unsigned int flags, mdb_mode_t m
     if (rew_env != NULL) {
         size_t path_length = strlen(path);
         rew_env->path = (char*)malloc(path_length + 5);
-        strcat(rew_env->path, path);
+        strcpy(rew_env->path, path);
         strcat(rew_env->path, "/log/");
 
         if (stat(rew_env->path, &st) == -1) {
@@ -93,13 +97,12 @@ int re_env_open(MDB_env *env, const char *path, unsigned int flags, mdb_mode_t m
             return rc;
         }
 
-        rew_env->mdb_log_dbi = malloc(sizeof(MDB_dbi));
         MDB_txn *txn;
         rc = mdb_txn_begin(rew_env->mdb_log_env, NULL, 0, &txn);
         if (rc != 0) {
             return rc;
         }
-        rc = mdb_dbi_open(txn, NULL, 0, rew_env->mdb_log_dbi);
+        rc = mdb_dbi_open(txn, NULL, 0, &rew_env->mdb_log_dbi);
         if (rc != 0) {
             return rc;
         }
@@ -127,16 +130,7 @@ int re_txn_begin(MDB_env *env, MDB_txn *parent, unsigned int flags, MDB_txn **tx
             return rc;
         }
 
-        rc = mdb_dbi_open(*txn, NULL, 0, &rew_env->mdb_log_dbi);
-        if (rc != 0) {
-            return rc;
-        }
-
         rc = mdb_cursor_open(*txn, rew_env->mdb_log_dbi, &rew_env->mdb_log_cursor);
-        if (rc != 0) {
-            return rc;
-        }
-        rc = mdb_env_set_userctx(rew_env->mdb_log_env, rew_env);
         if (rc != 0) {
             return rc;
         }
@@ -199,9 +193,6 @@ int re_txn_abort(MDB_txn *txn) {
 
 void re_dbi_close(MDB_env *env, MDB_dbi dbi) {
     REW_env* rew_env = mdb_env_get_userctx(env);
-    if (rew_env != NULL) {
-        mdb_dbi_close(rew_env->mdb_log_env, rew_env->mdb_log_dbi);
-    }
     mdb_dbi_close(env, dbi);
 }
 

@@ -30,6 +30,9 @@ TEST_CASE("LMDB random writes without Rewind", "[rewind]") {
     REQUIRE( SuccessFrom( mdb_env_create(&env) ) );
     REQUIRE( SuccessFrom( mdb_env_set_mapsize(env, size_t(1048576000) ) ) );
     REQUIRE( SuccessFrom( mdb_env_open(env, path, 0, 0664) ) );
+    REQUIRE( SuccessFrom( mdb_txn_begin(env, nullptr, 0, &txn) ) );
+    REQUIRE( SuccessFrom( mdb_open(txn, nullptr, 0, &dbi) ) );
+    REQUIRE( SuccessFrom( mdb_txn_commit(txn) ) );
 
     int batches = 10;
     int records_per_patch = 10;
