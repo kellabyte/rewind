@@ -4,7 +4,6 @@
 #include "success.hpp"
 
 TEST_CASE("initialize LMDB without Rewind", "[rewind]") {
-    int rc = 0;
     MDB_env* env = nullptr;
     MDB_dbi dbi = NULL;
     MDB_txn* txn = nullptr;
@@ -23,7 +22,6 @@ TEST_CASE("initialize LMDB without Rewind", "[rewind]") {
 }
 
 TEST_CASE("initialize LMDB with Rewind", "[rewind]") {
-    int rc = 0;
     MDB_env* env = nullptr;
     MDB_dbi dbi = NULL;
     MDB_txn* txn = nullptr;
