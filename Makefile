@@ -84,8 +84,7 @@ test: $(PLATFORM_TARGET)
 	./build/tests
 
 benchmark: $(PLATFORM_TARGET)
-	@rm -rf /tmp/benchmark1
-	@rm -rf /tmp/benchmark2
+	@rm -rf /tmp/benchmark*
 	./build/benchmarks --durations yes
 
 deps: $(lmdb_path)/libraries/liblmdb/liblmdb.a
