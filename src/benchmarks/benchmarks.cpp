@@ -70,20 +70,20 @@ void run_benchmark(bool use_rewind, char* benchmark_name, int number_of_txn, int
     mdb_env_close(env);
 }
 
-TEST_CASE("\t[LMDB]\t\t\t random write 10,000 txn, 1 keys/txn, 1,000 bytes/key", "[rewind]") {
-    run_benchmark(USE_LMDB, "benchmark1", 10000, 1, 1000);
+TEST_CASE("\t[LMDB]\t\t\t random write 100,000 txn, 1 keys/txn, 1,000 bytes/key", "[rewind]") {
+    run_benchmark(USE_LMDB, "benchmark1", 100000, 1, 1000);
 }
 
-TEST_CASE("\t[LMDB with Rewind]\t random write 10,000 txn, 1 keys/txn, 1,000 bytes/key\n", "[rewind]") {
-    run_benchmark(USE_REWIND, "benchmark2", 10000, 1, 1000);
+TEST_CASE("\t[LMDB with Rewind]\t random write 100,000 txn, 1 keys/txn, 1,000 bytes/key\n", "[rewind]") {
+    run_benchmark(USE_REWIND, "benchmark2", 100000, 1, 1000);
 }
 
-TEST_CASE("\t[LMDB]\t\t\t random write 1,000 txn, 10 keys/txn, 1,000 bytes/key", "[rewind]") {
-    run_benchmark(USE_LMDB, "benchmark3", 1000, 10, 1000);
+TEST_CASE("\t[LMDB]\t\t\t random write 10,000 txn, 10 keys/txn, 1,000 bytes/key", "[rewind]") {
+    run_benchmark(USE_LMDB, "benchmark3", 10000, 10, 1000);
 }
 
-TEST_CASE("\t[LMDB with Rewind]\t random write 1,000 txn, 10 keys/txn, 1,000 bytes/key\n", "[rewind]") {
-    run_benchmark(USE_REWIND, "benchmark4", 1000, 10, 1000);
+TEST_CASE("\t[LMDB with Rewind]\t random write 10,000 txn, 10 keys/txn, 1,000 bytes/key\n", "[rewind]") {
+    run_benchmark(USE_REWIND, "benchmark4", 10000, 10, 1000);
 }
 
 TEST_CASE("\t[LMDB]\t\t\t random write 1,000 txn, 100 keys/txn, 1,000 bytes/key", "[rewind]") {
@@ -110,10 +110,10 @@ TEST_CASE("\t[LMDB with Rewind]\t random write 1,000 txn, 10,000 keys/txn, 1,000
     run_benchmark(USE_REWIND, "benchmark10", 1000, 10000, 1000);
 }
 
-//TEST_CASE("\t[LMDB]\t\t\t random write 1,000 txn, 100,000 keys/txn, 1,000 bytes/key", "[rewind]") {
-//    run_benchmark(USE_LMDB, "benchmark11", 1000, 100000, 1000);
-//}
-//
-//TEST_CASE("\t[LMDB with Rewind]\t random write 1,000 txn, 100,000 keys/txn, 1,000 bytes/key\n", "[rewind]") {
-//    run_benchmark(USE_REWIND, "benchmark12", 1000, 100000, 1000);
-//}
+TEST_CASE("\t[LMDB]\t\t\t random write 1,000 txn, 100,000 keys/txn, 1,000 bytes/key", "[rewind]") {
+    run_benchmark(USE_LMDB, "benchmark11", 1000, 100000, 1000);
+}
+
+TEST_CASE("\t[LMDB with Rewind]\t random write 1,000 txn, 100,000 keys/txn, 1,000 bytes/key\n", "[rewind]") {
+    run_benchmark(USE_REWIND, "benchmark12", 1000, 100000, 1000);
+}
