@@ -16,14 +16,6 @@ typedef struct REW_env {
     unsigned int current_sequence;
 }REW_env;
 
-enum REW_record_type {
-    REW_GET = 0,
-    REW_SET = 1,
-    REW_BEGIN = 2,
-    REW_COMMIT = 3,
-    REW_ABORT = 4
-};
-
 int rew_env_create(MDB_env** env) {
     int rc = 0;
 
