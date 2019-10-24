@@ -1,29 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
 #include "lmdb.h"
 
 typedef struct REW_env {
     MDB_env* mdb_log_env;
     MDB_dbi mdb_log_dbi;
     MDB_cursor* mdb_log_cursor;
+    MDB_env* mdb_main_env;
     char* path;
     unsigned int last_durable_sequence;
     unsigned int current_sequence;
 }REW_env;
 
-int rew_env_create(MDB_env** env) {
+int start_sync(REW_env* rew_env);
+void* sync_loop(void* data);
+
+int rew_env_create(MDB_env** mdb_main_env) {
     int rc = 0;
+    REW_env* rew_env = malloc(sizeof(REW_env));
 
     // Create the main database file environment.
-    rc = mdb_env_create(env);
+    rc = mdb_env_create(mdb_main_env);
     if (rc != 0) {
         return rc;
     }
+    rew_env->mdb_main_env = mdb_main_env;
 
     // Create the log database file.
     MDB_env* mdb_log_env;
@@ -32,11 +40,10 @@ int rew_env_create(MDB_env** env) {
         return rc;
     }
 
-    REW_env* rew_env = malloc(sizeof(REW_env));
     rew_env->last_durable_sequence = 0;
     rew_env->current_sequence = 0;
     rew_env->mdb_log_env = mdb_log_env;
-    rc = mdb_env_set_userctx(*env, rew_env);
+    rc = mdb_env_set_userctx(*mdb_main_env, rew_env);
     if (rc != 0) {
         return rc;
     }
@@ -103,12 +110,17 @@ int re_env_open(MDB_env *env, const char *path, unsigned int flags, mdb_mode_t m
             return rc;
         }
         //printf("REW_ENV_OPEN\n");
-        return 0;
     }
 
     // Open the main LMDB database.
     rc = mdb_env_open(env, path, flags, mode);
+    if (rc != 0 ) {
+        return rc;
+    }
     //printf("MDB_ENV_OPEN\n");
+
+    // Start sync thread that synchronizes data between the log and the main database.
+    start_sync(rew_env);
     return rc;
 }
 
@@ -195,4 +207,65 @@ void re_env_close(MDB_env *env) {
         mdb_env_close(rew_env->mdb_log_env);
     }
     mdb_env_close(env);
+}
+
+int start_sync(REW_env* rew_env) {
+    pthread_t sync_thread;
+    if(pthread_create(&sync_thread, NULL, sync_loop, rew_env)) {
+        return 1;
+    }
+    return 0;
+}
+
+void* sync_loop(void* data) {
+    REW_env* rew_env = (REW_env*)data;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
+    while(true) {
+
+        //MDB_dbi dbi;
+        //MDB_cursor *cursor;
+        //if (int rc = mdb_cursor_open(d->transaction, d->dbi, &cursor)) {
+        //    //Error
+        //}
+        //
+        ////Initialize the key with the key we're looking for
+        //MDB_val key = {(size_t)someString.size(), (void *)someString.data()};
+        //MDB_val data;
+        //
+        ////Position the cursor, key and data are available in key
+        //if (int rc = mdb_cursor_get(cursor, &key, &data, MDB_SET_RANGE)) {
+        //    //No value found
+        //    mdb_cursor_close(cursor);
+        //    return 0;
+        //}
+        //
+        ////Position the curser at the next position
+        //mdb_cursor_get(cursor, &key, &data, MDB_NEXT)
+        //
+        //mdb_cursor_close(cursor);
+        sleep(1);
+
+        int rc = 0;
+        MDB_dbi dbi;
+        MDB_txn *txn;
+        MDB_cursor *log_cursor;
+        MDB_val log_cursor_key;
+        MDB_val log_cursor_value;
+        log_cursor_key.mv_size = sizeof(unsigned int);
+        log_cursor_key.mv_data = &rew_env->last_durable_sequence;
+
+        // TODO: Handle error return codes.
+        rc = mdb_txn_begin(rew_env->mdb_log_env, NULL, NULL, &txn);
+        //rc = mdb_dbi_open(txn, NULL, 0, &dbi);
+        rc = mdb_cursor_open(txn, rew_env->mdb_log_dbi, &log_cursor);
+        rc = mdb_cursor_get(log_cursor, &log_cursor_key, &log_cursor_value, MDB_FIRST);
+        printf("%d\n", log_cursor_value.mv_data);
+        rc = mdb_cursor_get(log_cursor, &log_cursor_key, &log_cursor_value, MDB_NEXT);
+        printf("%d\n", log_cursor_value.mv_data);
+
+    }
+#pragma clang diagnostic pop
+    return NULL;
 }
